@@ -2,7 +2,9 @@
 #include <sstream>
 #include <map>
 #include <SDL.h>
-#include <Windows.h>
+#ifdef _WIN32
+	#include <Windows.h>
+#endif
 #include <SDL_ttf.h>
 #include <iostream>
 
@@ -34,7 +36,7 @@ cv::Mat fitQuadraticToContour(std::vector<cv::Point> contour)
 	cv::Mat Y(contour.size(), 1, CV_32FC1);
 	cv::Mat X(contour.size(), 3, CV_32FC1);
 	int degrees = 2;
-	for (int i = 0; i < contour.size(); i++)
+	for (size_t i = 0; i < contour.size(); i++)
 	{
 		//yes, <= degrees, because we want to include power of zero (always 1) up to and including the last term
 		for (int j = 0; j <= degrees; j++)
@@ -53,7 +55,7 @@ cv::Mat fitQuadraticToContour(std::vector<cv::Point> contour)
 cv::Mat fitDimensionPoly(std::vector<cv::Point> points, cv::Mat Y)
 {
 	cv::Mat X(points.size(), 6, CV_32FC1);
-	for (int i = 0; i < points.size(); i++)
+	for (size_t i = 0; i < points.size(); i++)
 	{
 		int c = 0;
 		float x = points[i].x;
@@ -81,7 +83,7 @@ void fitTheFuckingThing(std::vector<cv::Point> contour, cv::Mat qCoeffs, cv::Mat
 
 	float xmax = FLT_MIN;
 	float xmin = FLT_MAX;
-	for (int i = 0; i < contour.size(); i++)
+	for (size_t i = 0; i < contour.size(); i++)
 	{
 		float x = contour[i].x;
 		float a = qCoeffs.at<float>(0, 0);
@@ -125,12 +127,12 @@ void fitTheFuckingThing(std::vector<cv::Point> contour, cv::Mat qCoeffs, cv::Mat
 	float lowerXSpacing = lowerPoints.size() / (xmax - xmin);
 	//generate lower ground truths
 	float startX = xmin;
-	for (int i = 0; i < lowerPoints.size(); i++)
+	for (size_t i = 0; i < lowerPoints.size(); i++)
 	{
 		cv::Point newPoint(startX + i * lowerXSpacing, centrePoint.y - hlineheight);
 		lowerGroundTruths.push_back(newPoint);
 	}
-	for (int i = 0; i < upperPoints.size(); i++)
+	for (size_t i = 0; i < upperPoints.size(); i++)
 	{
 		cv::Point newPoint(startX + i * upperXSpacing, centrePoint.y + hlineheight);
 		upperGroundTruths.push_back(newPoint);
@@ -141,7 +143,7 @@ void fitTheFuckingThing(std::vector<cv::Point> contour, cv::Mat qCoeffs, cv::Mat
 	std::vector<cv::Point> assocGroundTruths;
 
 	//sort everrrything by their X components. Lower first and then upper points.
-	auto comparator = [](cv::Point &a, cv::Point &b) -> bool
+	auto comparator = [](cv::Point a, cv::Point b) -> bool
 	{
 		return a.x < b.x;
 	};
@@ -171,7 +173,7 @@ void fitTheFuckingThing(std::vector<cv::Point> contour, cv::Mat qCoeffs, cv::Mat
 	cv::Mat XTruths(assocGroundTruths.size(), 1, CV_32FC1);
 	cv::Mat YTruths(assocGroundTruths.size(), 1, CV_32FC1);
 
-	for (int i = 0; i < assocGroundTruths.size(); i++)
+	for (size_t i = 0; i < assocGroundTruths.size(); i++)
 	{
 		XTruths.at<float>(i, 0) = assocGroundTruths[i].x;
 		YTruths.at<float>(i, 0) = assocGroundTruths[i].y;
@@ -195,13 +197,12 @@ void fitLineLine(std::vector<cv::Point> lineContour, cv::Mat &XCoeffs, cv::Mat &
 
 	//fit an ellipse to the contour.
 
-	cv::RotatedRect ellipse = cv::fitEllipse(lineContour);
 
 	//make vectors of the X and of the Y coordinates of the points that we are interested in
 	cv::Mat X(lineContour.size(), 1, CV_32FC1);
 	cv::Mat Y(lineContour.size(), 1, CV_32FC1);
 
-	for (int i = 0; i < lineContour.size(); i++)
+	for (size_t i = 0; i < lineContour.size(); i++)
 	{
 		X.at<float>(i, 0) = lineContour[i].x;
 		Y.at<float>(i, 0) = lineContour[i].y;
@@ -372,7 +373,7 @@ cv::Mat processBookScan(cv::Mat book)
 	std::vector<std::vector<cv::Point>> contours;
 	std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(book, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
-	for (int i = 0; i < contours.size(); i++)
+	for (size_t i = 0; i < contours.size(); i++)
 	{
 		auto ellipse = cv::fitEllipse(contours[i]);
 		std::stringstream anglestream;
@@ -435,7 +436,7 @@ void stringToMat(std::string in, cv::Mat &out, TTF_Font *font)
 	}
 
 	surface = TTF_RenderText_Solid(font, in.c_str(), textColor);
-	std::cout << "Surface type: " << static_cast<int>(SDL_PIXELTYPE(surface->format->format)) << std::endl;
+	//std::cout << "Surface type: " << static_cast<int>(SDL_PIXELTYPE(surface->format->format)) << std::endl;
 
 	cv::Mat charmat(surface->h, surface->pitch, CV_8UC1);
 	
@@ -465,7 +466,7 @@ void stringToMat(std::string in, cv::Mat &out, TTF_Font *font)
 
 cv::Mat noise(cv::Size size, float noisiness)
 {
-	std::exception("Attempted to use unimplemented function noise!");
+	throw std::runtime_error("Attempted to use unimplemented function noise!");
 	cv::Mat noiseMatrix(size, CV_8UC1);
 	for (int i = 0; i < size.width; i++)
 	{
@@ -501,7 +502,7 @@ int main(int argc, char** argv)
 	TTF_Init();
 	TTF_Font* myfont = NULL;
 	myfont = TTF_OpenFont(fonts[2], 30);
-
+	std::cout<<"Initiation!\n";
 
 	if (!myfont)
 	{
