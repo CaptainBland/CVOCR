@@ -1,3 +1,6 @@
+#ifndef NEURAL_NET_H
+#define NEURAL_NET_H
+
 #include "NeuralNet.hpp"
 
 NeuralNetwork hardCodedAnd()
@@ -51,3 +54,6 @@ int main(int argc, char ** argv)
     hardCodedAnd();
 	std::cout<<"Todo: all."<<std::endl;
 }
+
+
+#endif
