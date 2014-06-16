@@ -1,3 +1,6 @@
+#ifndef NEURAL_NET_H
+#define NEURAL_NET_H
+
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <functional>
@@ -96,4 +99,4 @@ class NeuralNetwork
 };
 
 
-
+#endif
