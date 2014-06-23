@@ -24,6 +24,8 @@ NeuralNetwork *makeGateWithWeights(float weightA, float weightB, float weightC)
 }
 
 
+
+
 //unit tests for gates
 bool testAND()
 {
@@ -82,7 +84,45 @@ bool testOR()
     return result;
 }
 
+/*Simple demonstration of propagation over two layers; (A OR B) -> A*/
+bool orImplies()
+{
+    //create a neural network as an or gate...
+    cv::Mat thetaOR = (cv::Mat_<float>(3,3) << 0, -10, 0, 0, 20, 0, 0, 20, 0);
+    //seems to work by coincidence. Sorta. TODO URGENT.
+    cv::Mat thetaImp = (cv::Mat_<float>(3,3) << -10, 0, 0, 0, 20, 0, 0, 0, 0); 
 
+    
+    //now let's stick 'em in a network
+    std::vector<cv::Mat> layers;
+    layers.push_back(thetaOR);
+    layers.push_back(thetaImp);
+
+    auto network = new NeuralNetwork();
+
+    network->setWeights(layers);
+
+    float b = 1.0f;//bias
+    //penne replicate
+    cv::Mat t1 = network->eval((cv::Mat_<float>(3,1) << b,1,1));
+    cv::Mat t2 = network->eval((cv::Mat_<float>(3,1) << b,1,0));
+    cv::Mat t3 = network->eval((cv::Mat_<float>(3,1) << b,0,1));
+    cv::Mat f1 = network->eval((cv::Mat_<float>(3,1) << b,0,0));
+    std::stringstream matstream;
+    matstream<<"OR implies results: " << t1 << t2 << t3 << f1; 
+
+    Log(SPAM, matstream.str());
+    bool result = true;
+    result = result && t1.at<float>(0,1) == 1;
+    result = result && t2.at<float>(0,1) == 1;
+    result = result && t3.at<float>(0,1) == 1;
+    result = result && f1.at<float>(0,1) != 1;
+
+    delete network;
+
+    return result;
+
+}
 
 /*Run NeuralNetwork tests*/
 int main(int argc, char ** argv)
@@ -90,6 +130,7 @@ int main(int argc, char ** argv)
 
     Log(DEBUG, std::string("AND success: ") + std::to_string(testAND())); 
     Log(DEBUG, std::string("OR success: ") + std::to_string(testOR()));
+    Log(DEBUG, std::string("OR IMPLIES success: ") + std::to_string(orImplies()));
 
 }
 

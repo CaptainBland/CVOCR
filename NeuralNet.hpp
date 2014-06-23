@@ -79,7 +79,9 @@ class NeuralNetwork
         Log(SPAM, "solveLayer");
         cv::Mat a(inputs.size(), inputs.type());
         a = a.t();//transpose a - return a row vector
-        
+        std::cout<<"WEIGHTS: " << weights << "\n";
+
+        std::cout<<"INPUTS: " << inputs << "\n";
         
         for(int i = 0; i < weights.cols; i++)
         {
@@ -113,12 +115,12 @@ class NeuralNetwork
         cv::Mat rinput = input.t(); 
         Log(SPAM, "Transpose");
         //for each layer... (todo: vectorise moar) 
-        for(int layer = 0; layer < weights.size(); layer++)
+        for(size_t layer = 0; layer < weights.size(); layer++)
         {
            
             cv::Mat t_activations = solveLayer(rinput, weights[layer]);
             //forward propagate
-            t_activations.copyTo(rinput);
+            rinput = t_activations.t(); //codebase soon to become missy elliot reference
             
         }
         //the returned result is whatever the output of the output layer is.
