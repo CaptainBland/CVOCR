@@ -38,9 +38,11 @@ I think this might be limited to feed-forward neural networks. May have to look 
 class NeuralNetwork
 {
     private:
-        std::vector<cv::Mat> activations;
-        cv::Mat weights;
-        size_t matrixheight;
+    std::vector<cv::Mat> weights;
+
+    size_t matrixheight;
+
+
     public:
     
     NeuralNetwork()
@@ -53,82 +55,70 @@ class NeuralNetwork
         //copy constructor
     }
     
-    /** Set the default weights matrix to the neural network
-      -- This does no extra work other than setting the weights matrix as is.
-      @param network - example: if it has a maximum of 10 neurons per layer, and five layers, the network matrix should be 10x5.
-    */
-    void setNetwork(cv::Mat network)
-    {
-        //this is our default weights matrix. Usually will be randomly between 0 and 1 assigned except the input should always be 1
-        //these will be adjusted when backprop is implemented. This is very 'todo'
-        this->weights = network;
-    }
+ 
     
     /** Set the activations matrices.
         So this essentially represents synapses. Each layer has a matrix which represents the activations which
         happen at that node from the layer that came before it. I think this should generate a 'feedforward' style network
         
-        @param activations - matrix elements are between 0 and 1 depending on how much weight they have to the following synapse
+        @param weights - matrix elements are between 0 and 1 depending on how much weight they have to the following synapse
      */
-    void setActivations(std::vector<cv::Mat> activations)
+    void setWeights(std::vector<cv::Mat> weights)
     {
-        this->activations = activations;
+        this->weights = weights;
     }
     
-	/**Solve layer - implements (g(z(i))
-	    Inputs are a row vector
-	    Weights are a column vector
-	*/
-	cv::Mat solveLayer(cv::Mat inputs /*x*/,
-					   cv::Mat weights /*theta*/)
-	{
+    /**Solve layer - implements (g(z(i))
+        Inputs are a row vector
+        Weights are a column vector
+    */
+    cv::Mat solveLayer(cv::Mat inputs /*x*/,
+                       cv::Mat weights /*theta*/)
+    {
         Log(SPAM, "solveLayer");
-		cv::Mat a(inputs.size(), inputs.type());
-		a = a.t();//transpose a - return a row vector
-		
-		
-		for(int i = 0; i < weights.cols; i++)
-		{
-		    //inputs: 1XN, weights(i): NX1 - output: 1X1
-			cv::Mat t_zMat = inputs * weights.col(i);
-			
-			
-			float z = t_zMat.at<float>(0,0);
-			float temp_a = activation(z);
-			
-			a.at<float>(i, 0) = temp_a;
-		}
-		Log(SPAM, "solved layer");
-		return a;
-	}	
-	
+        cv::Mat a(inputs.size(), inputs.type());
+        a = a.t();//transpose a - return a row vector
+        
+        
+        for(int i = 0; i < weights.cols; i++)
+        {
+            //inputs: 1XN, weights(i): NX1 - output: 1X1
+            cv::Mat t_zMat = inputs * weights.col(i);
+            
+            
+            float z = t_zMat.at<float>(0,0);
+            float temp_a = activation(z);
+            
+            a.at<float>(i, 0) = temp_a;
+        }
+        Log(SPAM, "solved layer");
+        return a;
+    }    
+    
     /*eval - evaluate the function the neural network represents with respect to the input matrix.
         @param inputs - a column vector filled with binary inputs which represent our features 
         @return a column vector with numbers between 0 and 1 which represent our output.
     */
-	
-	
+    
+    
     cv::Mat eval(cv::Mat input)
     {
         Log(SPAM, std::string("Eval! activations size: "));
-        check(activations.size() != 0);
-        assert(input.rows == activations[0].rows); //make some vague assertion that the rows on the input are the same as at least the next layer
+        check(weights.size() != 0);
+        assert(input.rows == weights[0].rows); //make some vague assertion that the rows on the input are the same as at least the next layer
         Log(SPAM, "After assertion");
         
         
         cv::Mat rinput = input.t(); 
         Log(SPAM, "Transpose");
         //for each layer... (todo: vectorise moar) 
-        for(int layer = 1; layer < activations.size(); layer++)
+        for(int layer = 0; layer < weights.size(); layer++)
         {
            
-			cv::Mat t_activations = solveLayer(rinput, weights.col(layer));
-
-			//forward propagate
-			t_activations.copyTo(rinput);
-			
-			
-			
+            cv::Mat t_activations = solveLayer(rinput, weights[layer]);
+            //forward propagate
+            t_activations.copyTo(rinput);
+            
         }
         //the returned result is whatever the output of the output layer is.
         //so in an AND gate example, we expect the neuron in the second row to always be zero (so only row 1 is meaningful)

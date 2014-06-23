@@ -20,26 +20,18 @@ NeuralNetwork *hardCodedAnd()
     
     /*
        [1 0
-        0 0]
+        1 0]
     */
-    cv::Mat thetaOut = (cv::Mat_<float>(2,2) << 1, 0, 0, 0);
-    std::cout<<thetaOut<<std::endl;
+    //cv::Mat thetaOut = (cv::Mat_<float>(2,2) << 1, 0, 1, 0);
+    //std::cout<<thetaOut<<std::endl;
     std::vector<cv::Mat> thetaParams;
     thetaParams.push_back(thetaHidden);
-    thetaParams.push_back(thetaOut);
+    //thetaParams.push_back(thetaOut);
     
     NeuralNetwork *mynet = new NeuralNetwork;
     
-    mynet->setActivations(thetaParams);
+    mynet->setWeights(thetaParams);
     
-    
-    /*
-    [0 1 1
-     0 1 1]
-    */
-    cv::Mat defaultWeights = (cv::Mat_<float>(2,3) << 0, 1, 1, 0, 1, 1);
-    std::cout<<defaultWeights<<std::endl;
-    mynet->setNetwork(defaultWeights);
     
     return mynet;
 }
