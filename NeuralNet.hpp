@@ -17,6 +17,7 @@ class NeuralNetwork;
 template <typename T>
 T activation(T t)
 {
+    //with 1+t for bias
     //return 1/(1+exp(t));
     return (tanh(t));
 }
@@ -103,7 +104,7 @@ class NeuralNetwork
     
     cv::Mat eval(cv::Mat input)
     {
-        Log(SPAM, std::string("Eval! activations size: "));
+
         check(weights.size() != 0);
         assert(input.rows == weights[0].rows); //make some vague assertion that the rows on the input are the same as at least the next layer
         Log(SPAM, "After assertion");
